@@ -13,7 +13,7 @@ import path from 'node:path'
 import { zipSync } from 'fflate'
 
 const HANDBOOK = path.resolve(process.env.HANDBOOK_DIR || '../agentic-ai-handbook')
-const OUT = path.resolve('public/handbook')
+const OUT = path.resolve(process.env.OUT_DIR || 'public/handbook')
 const SKIP_DIRS = new Set(['.venv', '.git', '__pycache__', '.pytest_cache', 'node_modules', '.hitl_runs', '.memory_store'])
 const CODE_EXT = new Set(['.py', '.md', '.json', '.jsonl', '.txt', '.pdf', '.csv', '.toml'])
 

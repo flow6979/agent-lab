@@ -5,7 +5,7 @@
 import fs from 'node:fs'
 import { loadPyodide } from 'pyodide'
 
-const zip = new Uint8Array(fs.readFileSync('public/handbook/handbook.zip'))
+const zip = new Uint8Array(fs.readFileSync(process.env.HANDBOOK_ZIP || 'public/handbook/handbook.zip'))
 const py = await loadPyodide()
 await py.loadPackage(['pydantic', 'micropip'])
 py.unpackArchive(zip, 'zip', { extractDir: '/handbook' })
