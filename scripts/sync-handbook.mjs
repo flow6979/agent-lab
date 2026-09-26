@@ -105,6 +105,20 @@ const sections = [path.join(HANDBOOK, 'common'), path.join(HANDBOOK, 'lab-api')]
 const root = { ...node(HANDBOOK, -1), children: sections }
 fs.writeFileSync(path.join(OUT, 'docs.json'), JSON.stringify(root, null, 1))
 
+// ---- runner manifest (projects.json + projects.d/*.json merged, same as labapi.project_lab.manifest)
+const labapiDir = path.join(HANDBOOK, 'lab-api/labapi')
+const projects = fs.existsSync(path.join(labapiDir, 'projects.json')) ? JSON.parse(fs.readFileSync(path.join(labapiDir, 'projects.json'), 'utf8')) : {}
+const extraDir = path.join(labapiDir, 'projects.d')
+if (fs.existsSync(extraDir)) {
+  for (const f of fs.readdirSync(extraDir).filter((x) => x.endsWith('.json')).sort()) {
+    for (const [pid, extra] of Object.entries(JSON.parse(fs.readFileSync(path.join(extraDir, f), 'utf8')))) {
+      projects[pid] = { main: `${pid}/main.py`, ...(projects[pid] || {}), ...extra }
+    }
+  }
+}
+for (const p of Object.values(projects)) delete p.record // recorder-only config (server commands), UI ko nahi chahiye
+fs.writeFileSync(path.join(OUT, 'projects.json'), JSON.stringify(projects))
+
 let commit = 'unknown'
 try {
   commit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: HANDBOOK }).toString().trim()
