@@ -9,9 +9,10 @@ import { spawn } from 'node:child_process'
 import http from 'node:http'
 import { chromium } from 'playwright-core'
 
-const PORT = 4173
+const PORT = Number(process.env.PORT || 4173)
+const SITE = process.env.SITE // e.g. https://flow6979.github.io/agent-lab/ to test the live deploy
 const MOCK = 11434 // agentkit's default OLLAMA_BASE_URL is http://localhost:11434/v1
-const base = `http://localhost:${PORT}/agent-lab/`
+const base = SITE || `http://localhost:${PORT}/agent-lab/`
 const fail = (m) => {
   console.error(`FAIL ${m}`)
   process.exitCode = 1
@@ -40,8 +41,8 @@ const mock = http.createServer((req, res) => {
 })
 await new Promise((r) => mock.listen(MOCK, r))
 
-const preview = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'ignore' })
-await new Promise((r) => setTimeout(r, 2500))
+const preview = SITE ? null : spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'ignore' })
+if (preview) await new Promise((r) => setTimeout(r, 2500))
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true })
 const page = await browser.newPage()
@@ -82,11 +83,70 @@ try {
   else if (!String(res.result.answer).includes('26.8')) fail(`unexpected answer ${res.result.answer}`)
   else console.log(`ok   worker -> sync XHR -> CORS server: answer="${res.result.answer}", llm_calls=${res.result.llm_calls}, mock saw ${calls} calls`)
   if (!seenAuth.every((a) => a === 'Bearer test-key')) fail(`auth header not forwarded: ${seenAuth}`)
+
+  // ---- 3. every page renders without errors -------------------------------------------------
+  const routes = ['/', '/map', '/section/02-agentic-architectures', '/docs/02-agentic-architectures/04-react', '/docs', '/lab/react/learn', '/lab/react/code', '/lab/react/tinker', '/labs/rag', '/labs/web', '/labs/multi', '/labs/comm', '/labs/prod', '/settings', '/history', '/presenter', '/errors']
+  for (const r of routes) {
+    const before = logs.filter((l) => l.startsWith('pageerror')).length
+    await page.goto(`${base}#${r}`)
+    await page.locator('main h1, main h2').first().waitFor({ timeout: 20000 })
+    await page.waitForTimeout(800)
+    const errs = logs.filter((l) => l.startsWith('pageerror')).slice(before)
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)
+    if (errs.length) fail(`${r}: ${errs.join(' | ')}`)
+    else console.log(`ok   page ${r}${overflow ? '  (horizontal overflow!)' : ''}`)
+  }
+
+  // ---- 3b. phone width: no page may scroll sideways -----------------------------------------
+  await page.setViewportSize({ width: 390, height: 844 })
+  for (const r of routes) {
+    await page.goto(`${base}#${r}`)
+    await page.locator('main h1, main h2').first().waitFor({ timeout: 20000 })
+    await page.waitForTimeout(500)
+    const w = await page.evaluate(() => document.documentElement.scrollWidth)
+    if (w > 391) fail(`390px ${r}: page is ${w}px wide`)
+  }
+  console.log('ok   390px: checked every page for sideways scroll')
+  await page.setViewportSize({ width: 1280, height: 800 })
+
+  // ---- 4. every lab's smoke cases inside the browser worker (offline) ----------------------
+  const smoke = await page.evaluate(async (workerUrl) => {
+    const w = new Worker(workerUrl, { type: 'module' })
+    let id = 0
+    const send = (msg) =>
+      new Promise((resolve, reject) => {
+        const my = ++id
+        w.onmessage = (e) => {
+          if (e.data.id !== my) return
+          if (e.data.type === 'fatal') reject(new Error(e.data.message))
+          else if (e.data.type === 'result' || e.data.type === 'ready') resolve(e.data)
+        }
+        w.postMessage({ id: my, ...msg })
+      })
+    await send({ type: 'init' })
+    // catalog: labapi.catalog() via a tiny python run is not exposed, so list the known labs + their smoke cases here
+    const cases = [
+      ['ping', {}], ['react', { mode: 'text' }], ['react', { mode: 'native' }],
+      ['rag', { action: 'ingest' }, ['pypdf']], ['rag', { action: 'ask' }, ['pypdf']], ['rag', { action: 'ask', no_rag: true }, ['pypdf']],
+      ['web', {}], ['multi', { topology: 'supervisor' }], ['multi', { topology: 'crew' }], ['multi', { topology: 'groupchat' }], ['multi', { topology: 'swarm' }],
+      ['comm', { protocol: 'mcp' }], ['comm', { protocol: 'a2a' }], ['support', { message: 'Where is my order #1042?' }],
+    ]
+    const out = []
+    for (const [lab, params, pip] of cases) {
+      const r = await send({ type: 'run', request: { lab, params, offline: true, pip } })
+      out.push({ lab, params, ok: r.result.ok, err: r.result.ok ? null : r.result.error.message })
+    }
+    return out
+  }, `${base}pyworker.js`)
+  for (const s of smoke) {
+    if (s.ok) console.log(`ok   worker ${s.lab} ${JSON.stringify(s.params)}`)
+    else fail(`worker ${s.lab} ${JSON.stringify(s.params)}: ${s.err}`)
+  }
 } catch (e) {
   fail(e.message)
   console.error(logs.slice(-20).join('\n'))
 } finally {
   await browser.close()
-  preview.kill()
+  preview?.kill()
   mock.close()
 }
