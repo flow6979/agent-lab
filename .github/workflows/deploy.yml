@@ -49,6 +49,9 @@ jobs:
       - name: Smoke test every lab offline inside Pyodide
         run: node scripts/smoke-pyodide.mjs
 
+      - name: Run every handbook project's main.py offline inside Pyodide
+        run: node scripts/smoke-projects.mjs
+
       - name: Build site
         run: npm run build
 

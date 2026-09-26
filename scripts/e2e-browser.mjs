@@ -85,7 +85,7 @@ try {
   if (!seenAuth.every((a) => a === 'Bearer test-key')) fail(`auth header not forwarded: ${seenAuth}`)
 
   // ---- 3. every page renders without errors -------------------------------------------------
-  const routes = ['/', '/map', '/section/02-agentic-architectures', '/docs/02-agentic-architectures/04-react', '/docs', '/lab/react/learn', '/lab/react/code', '/lab/react/tinker', '/labs/rag', '/labs/web', '/labs/multi', '/labs/comm', '/labs/prod', '/settings', '/history', '/presenter', '/errors']
+  const routes = ['/', '/map', '/section/02-agentic-architectures', '/docs/02-agentic-architectures/04-react', '/docs', '/lab/react/learn', '/lab/react/code', '/lab/react/tinker', '/labs/rag', '/labs/web', '/labs/multi', '/labs/comm', '/labs/prod', '/settings', '/history', '/presenter', '/errors', '/run/02-agentic-architectures/01-prompt-chaining', '/run/05-agent-communication/08-a2a/01-a2a-server']
   for (const r of routes) {
     const before = logs.filter((l) => l.startsWith('pageerror')).length
     await page.goto(`${base}#${r}`)
@@ -108,6 +108,18 @@ try {
   }
   console.log('ok   390px: checked every page for sideways scroll')
   await page.setViewportSize({ width: 1280, height: 800 })
+
+  // ---- 3c. every handbook project via the generic runner UI (click Run, wait for exit code) ---
+  const man = await (await fetch(`${base}handbook/projects.json`)).json()
+  for (const pid of Object.keys(man)) {
+    await page.goto(`${base}#/run/${pid}`)
+    await page.getByRole('button', { name: /^(Run|Phir se chalao|Run again)$/ }).first().click()
+    const done = page.locator('text=/exit code 0/').first()
+    const err = page.locator('[role=alert]').first()
+    const which = await Promise.race([done.waitFor({ timeout: 90000 }).then(() => 'ok'), err.waitFor({ timeout: 90000 }).then(() => 'err')]).catch(() => 'timeout')
+    if (which === 'ok') console.log(`ok   runner UI ${pid}`)
+    else fail(`runner UI ${pid}: ${which} ${which === 'err' ? (await err.innerText()).slice(0, 300) : ''}`)
+  }
 
   // ---- 4. every lab's smoke cases inside the browser worker (offline) ----------------------
   const smoke = await page.evaluate(async (workerUrl) => {
