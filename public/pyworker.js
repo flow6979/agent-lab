@@ -10,10 +10,11 @@
  * Python sync code hai; LLM calls ke liye agentkit worker ke andar synchronous XMLHttpRequest
  * use karta hai (common/agentkit/llm/http.py). Isliye yeh sab worker mein hi chalna chahiye.
  */
-/* global importScripts, loadPyodide */
+// Module worker (Pyodide 314+ ESM hai): new Worker(url, { type: 'module' })
 const PYODIDE_VERSION = '314.0.7'
+const CDN = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`
 const BASE = self.location.href.replace(/pyworker\.js.*$/, '')
-importScripts(`https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/pyodide.js`)
+const pyodideModule = import(`${CDN}pyodide.mjs`) // onmessage turant lage, isliye yahan await nahi
 
 let pyodide = null
 let readyPromise = null
@@ -25,7 +26,8 @@ function post(msg) {
 async function init(id) {
   const progress = (stage, pct) => post({ id, type: 'progress', stage, pct })
   progress('pyodide', 5)
-  pyodide = await loadPyodide({ indexURL: `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/` })
+  const { loadPyodide } = await pyodideModule
+  pyodide = await loadPyodide({ indexURL: CDN })
   progress('packages', 45)
   await pyodide.loadPackage(['pydantic', 'micropip'])
   progress('handbook', 75)

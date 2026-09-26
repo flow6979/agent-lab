@@ -29,7 +29,7 @@ class WorkerBridge {
   ready = false
 
   private spawn() {
-    this.worker = new Worker(`${import.meta.env.BASE_URL}pyworker.js`)
+    this.worker = new Worker(`${import.meta.env.BASE_URL}pyworker.js`, { type: 'module' })
     this.worker.onmessage = (e: MessageEvent) => {
       const msg = e.data
       const p = this.pending.get(msg.id)
