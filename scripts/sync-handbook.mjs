@@ -76,7 +76,9 @@ function node(dir, depth) {
   const main = docs.README || docs.CONCEPTS
   const children = fs
     .readdirSync(dir, { withFileTypes: true })
-    .filter((e) => e.isDirectory() && /^\d\d-/.test(e.name))
+    // numbered folders (01-...) + koi bhi folder jisme README/CONCEPTS ho (e.g. 01-production-agent/support-desk)
+    .filter((e) => e.isDirectory() && !SKIP_DIRS.has(e.name) && !e.name.startsWith('.') &&
+      (/^\d\d-/.test(e.name) || ['README.md', 'CONCEPTS.md'].some((f) => fs.existsSync(path.join(dir, e.name, f)))))
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((e) => node(path.join(dir, e.name), depth + 1))
     .filter((n) => Object.keys(n.docs).length || n.children.length)
