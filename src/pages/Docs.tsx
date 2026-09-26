@@ -9,6 +9,8 @@ import { githubFile } from '../i18n/common'
 import { docsDict } from '../i18n/pages/docs'
 import { fetchRaw, findNode, loadTree, type DocBase, type DocNode } from '../lib/handbook'
 import { labFor } from '../lib/labRoutes'
+import { runnerRoute } from '../lib/projects'
+import { useProjects } from '../lib/useProjects'
 import { markVisited } from '../lib/progress'
 import { humanName, projectLabel, projectsOf, sectionNum, shortTitle } from '../lib/sections'
 import { useApp } from '../state/app'
@@ -105,7 +107,8 @@ export default function Docs() {
     if (b === 'TESTING') g.done('tab', t.explainTab(node?.docs.TESTING?.[app.lang] ?? ''))
   }
 
-  const lab = labFor(id)
+  const runMan = useProjects()
+  const lab = labFor(id) ?? (runMan[id] ? { route: runnerRoute(id) } : null)
   const title = !node ? '' : id === '.' ? t.root : node.children.length || node.id.split('/').length === 1 ? `${sectionNum(node)} ${shortTitle(node, app.lang)}` : node.title[app.lang] || node.title.en ? projectLabel(node, app.lang) : humanName(node.name)
   const d = node?.docs[base]
 

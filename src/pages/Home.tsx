@@ -7,6 +7,8 @@ import { useT } from '../i18n'
 import { homeDict } from '../i18n/pages/home'
 import { findNode, loadTree, type DocNode } from '../lib/handbook'
 import { labFor } from '../lib/labRoutes'
+import { runnerRoute } from '../lib/projects'
+import { useProjects } from '../lib/useProjects'
 import { getProgress, markVisited, onProgress } from '../lib/progress'
 import { PATH_ORDER, projectLabel, projectsOf, sectionNum, shortTitle } from '../lib/sections'
 import { useApp } from '../state/app'
@@ -15,6 +17,7 @@ import '../styles/pages/map.css'
 const REACT_ID = '02-agentic-architectures/04-react'
 
 export default function Home() {
+  const runMan = useProjects()
   const t = useT(homeDict)
   const { lang } = useApp()
   const navigate = useNavigate()
@@ -111,12 +114,14 @@ export default function Home() {
               <div className="col" style={{ gap: 6, marginTop: 'auto' }}>
                 {(rows.length ? rows : [s]).map((p) => {
                   const lab = labFor(p.id)
+                  const man = runMan[p.id]
                   const target = p.id === REACT_ID && g.is('react-row')
-                  const route = lab ? lab.route : `/docs/${p.id}`
+                  const route = lab ? lab.route : man ? runnerRoute(p.id) : `/docs/${p.id}`
+                  const badge = lab ? (lab.replay ? 'replay' : 'live') : man ? (man.browser === 'replay' ? 'replay' : 'live') : 'docs'
                   return (
                     <button key={p.id} type="button" className={`map-row${target ? ' target al-pulse' : ''}`} style={{ cursor: 'pointer', textAlign: 'left' }} onClick={() => open(p.id, route)}>
                       <span style={{ flexGrow: 1 }}>{p === s ? shortTitle(s, lang) : projectLabel(p, lang)}</span>
-                      <span className={`badge ${lab ? (lab.replay ? 'badge-violet' : 'badge-teal') : 'badge-gray'}`}>{lab ? (lab.replay ? t.replay : t.live) : t.docs}</span>
+                      <span className={`badge ${badge === 'replay' ? 'badge-violet' : badge === 'live' ? 'badge-teal' : 'badge-gray'}`}>{badge === 'replay' ? t.replay : badge === 'live' ? t.live : t.docs}</span>
                     </button>
                   )
                 })}

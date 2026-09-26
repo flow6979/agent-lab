@@ -7,6 +7,8 @@ import { useT } from '../i18n'
 import { sectionDict } from '../i18n/pages/section'
 import { docFile, findNode, loadTree, type DocNode } from '../lib/handbook'
 import { labFor } from '../lib/labRoutes'
+import { runnerRoute } from '../lib/projects'
+import { useProjects } from '../lib/useProjects'
 import { getProgress, markVisited } from '../lib/progress'
 import { firstParagraph, projectLabel, projectsOf, sectionNum, shortTitle } from '../lib/sections'
 import { useApp } from '../state/app'
@@ -21,6 +23,7 @@ export default function Section() {
   const t = useT(sectionDict)
   const { lang } = useApp()
   const navigate = useNavigate()
+  const runMan = useProjects()
   const isArch = sectionId === ARCH
   const g = useGuide(`section-${sectionId}`, isArch ? ['helper', 'learn'] : ['learn'])
   const [root, setRoot] = useState<DocNode | null>(null)
@@ -141,6 +144,8 @@ export default function Section() {
           <Tip show={g.is('learn')}>{t.tipLearn}</Tip>
           {shown.map((p) => {
             const lab = labFor(p.id)
+            const runnable = !!runMan[p.id]
+            const replayOnly = runMan[p.id]?.browser === 'replay'
             const fam = family(p.name)
             return (
               <div key={p.id} className={`proj-row${rec === p.name ? ' rec' : ''}`}>
@@ -148,7 +153,7 @@ export default function Section() {
                   <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 700, fontSize: 16 }}>{projectLabel(p, lang)}</span>
                     {isArch && <span className={`badge ${fam === 'Agent' ? 'badge-teal' : fam === 'Workflow' ? 'badge-amber' : 'badge-gray'}`}>{t.family[fam]}</span>}
-                    <span className={`badge ${lab ? (lab.replay ? 'badge-violet' : 'badge-teal') : 'badge-gray'}`}>{lab ? (lab.replay ? t.replay : t.live) : t.docs}</span>
+                    <span className={`badge ${runnable ? (replayOnly ? 'badge-violet' : 'badge-teal') : 'badge-gray'}`}>{runnable ? (replayOnly ? t.replay : t.live) : t.docs}</span>
                     {visited[p.id] && <span className="muted" style={{ fontSize: 12 }}>· {t.visited}</span>}
                   </div>
                   <span className="muted" style={{ fontSize: 13, lineHeight: 1.45 }}>{descs[p.id] ?? ' '}</span>
@@ -159,7 +164,12 @@ export default function Section() {
                     <Icon name="doc" size={14} /> {t.learn}
                   </button>
                   {lab && (
-                    <Link to={lab.route} className="btn btn-sm btn-primary" onClick={() => markVisited(p.id, lab.route)}>
+                    <Link to={lab.route} className="btn btn-sm btn-outline" onClick={() => markVisited(p.id, lab.route)} title={lab.route}>
+                      <Icon name="play" size={12} /> Lab
+                    </Link>
+                  )}
+                  {runnable && (
+                    <Link to={runnerRoute(p.id)} className="btn btn-sm btn-primary" title={`${p.id}/main.py`}>
                       <Icon name="play" size={12} /> {t.run}
                     </Link>
                   )}
