@@ -1,0 +1,67 @@
+# Build + deploy to GitHub Pages.
+# Har push pe, handbook update hone pe (repository_dispatch), roz ek baar, ya haath se (workflow_dispatch).
+# Steps: handbook repo checkout -> handbook bundle (sync) -> Pyodide smoke test (saare labs offline)
+#        -> vite build -> Pages pe deploy.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  repository_dispatch:
+    types: [handbook-updated]
+  schedule:
+    - cron: '30 3 * * *'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout handbook
+        uses: actions/checkout@v4
+        with:
+          repository: flow6979/agentic-ai-handbook
+          path: handbook
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Bundle handbook (code + docs)
+        run: node scripts/sync-handbook.mjs
+        env:
+          HANDBOOK_DIR: handbook
+
+      - name: Smoke test every lab offline inside Pyodide
+        run: node scripts/smoke-pyodide.mjs
+
+      - name: Build site
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
