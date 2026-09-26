@@ -22,6 +22,7 @@ const WebLab = lazy(() => import('./pages/labs/WebLab'))
 const MultiAgentLab = lazy(() => import('./pages/labs/MultiAgentLab'))
 const CommLab = lazy(() => import('./pages/labs/CommLab'))
 const ProdLab = lazy(() => import('./pages/labs/ProdLab'))
+const Runner = lazy(() => import('./pages/Runner'))
 
 function Shell() {
   const t = useT(common)
@@ -49,6 +50,7 @@ function Shell() {
           <Route path="/labs/multi" element={<MultiAgentLab />} />
           <Route path="/labs/comm" element={<CommLab />} />
           <Route path="/labs/prod" element={<ProdLab />} />
+          <Route path="/run/*" element={<Runner />} />
           <Route path="/history" element={<History />} />
           <Route path="/presenter" element={<Presenter />} />
           <Route path="*" element={<Navigate to="/" replace />} />

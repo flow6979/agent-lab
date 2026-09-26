@@ -29,7 +29,7 @@ async function init(id) {
   const { loadPyodide } = await pyodideModule
   pyodide = await loadPyodide({ indexURL: CDN })
   progress('packages', 45)
-  await pyodide.loadPackage(['pydantic', 'micropip'])
+  await pyodide.loadPackage(['pydantic', 'micropip', 'httpx'])
   progress('handbook', 75)
   const [zipRes, metaRes] = await Promise.all([fetch(`${BASE}handbook/handbook.zip`), fetch(`${BASE}handbook/meta.json`)])
   if (!zipRes.ok) throw new Error(`handbook.zip HTTP ${zipRes.status}`)
