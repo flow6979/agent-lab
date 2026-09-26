@@ -15,6 +15,7 @@ import { useLabRun } from '../../lib/useLabRun'
 import { useApp } from '../../state/app'
 import ReactCode from './ReactCode'
 import ReactTinker from './ReactTinker'
+import { useVisit } from '../../lib/useVisit'
 
 export const REACT_PROJECT = '02-agentic-architectures/04-react'
 type Tab = 'learn' | 'run' | 'code' | 'tinker'
@@ -27,6 +28,7 @@ const NODE: Record<Mode, Record<string, number>> = {
 }
 
 export default function ReactLab() {
+  useVisit('02-agentic-architectures/04-react', '/lab/react/run')
   const { tab: tabParam } = useParams()
   const tab = (['learn', 'run', 'code', 'tinker'].includes(tabParam ?? '') ? tabParam : 'run') as Tab
   const navigate = useNavigate()

@@ -11,6 +11,7 @@ import { useT } from '../../i18n'
 import { commLabDict } from '../../i18n/pages/commLab'
 import { useLabRun } from '../../lib/useLabRun'
 import '../../styles/pages/comm-lab.css'
+import { useVisit } from '../../lib/useVisit'
 
 type Protocol = 'mcp' | 'a2a'
 type Msg = { seq: number; t_ms: number; from: string; to: string; kind: string; method: string | null; label: string; json: unknown; state?: string | null; error?: boolean }
@@ -21,6 +22,7 @@ const KIND_CLASS: Record<string, string> = { request: 'k-req', response: 'k-res'
 const WIRE_KINDS = new Set(['request', 'response', 'notification', 'sse'])
 
 export default function CommLab() {
+  useVisit('05-agent-communication/07-mcp', '/labs/comm')
   const t = useT(commLabDict)
   const g = useGuide('comm-lab', ['play', 'arrow', 'a2a', 'playA2a'])
   const lab = useLabRun<Replay>('comm', 'MCP + A2A (replay)')

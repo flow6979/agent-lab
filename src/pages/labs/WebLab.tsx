@@ -14,6 +14,7 @@ import { webLabDict } from '../../i18n/pages/webLab'
 import { useLabRun } from '../../lib/useLabRun'
 import { useApp } from '../../state/app'
 import '../../styles/pages/web-lab.css'
+import { useVisit } from '../../lib/useVisit'
 
 type Provider = 'wikipedia' | 'tavily'
 type WebResult = { report: string; sources: string[]; sub_questions: string[]; rounds: number; searches: number; max_searches: number; pages: number; max_pages: number; notes: number }
@@ -24,6 +25,7 @@ const TONE: Record<string, TraceItem['tone']> = { plan: 'violet', search: 'amber
 const shortUrl = (u: string) => u.replace(/^https?:\/\//, '').replace(/^www\./, '')
 
 export default function WebLab() {
+  useVisit('03-web-agents/04-deep-research-agent', '/labs/web')
   const t = useT(webLabDict)
   const c = useT(common)
   const app = useApp()

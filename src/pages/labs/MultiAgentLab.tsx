@@ -14,6 +14,7 @@ import { useLabRun } from '../../lib/useLabRun'
 import type { LabEvent } from '../../lib/worker'
 import { useApp } from '../../state/app'
 import '../../styles/pages/multi-lab.css'
+import { useVisit } from '../../lib/useVisit'
 
 const DEFAULT_TASKS: Record<Topology, string> = {
   supervisor: 'Should I install solar panels at home? Give a short, accurate answer.',
@@ -61,6 +62,7 @@ function edgeFor(topology: Topology, ev: LabEvent | undefined): [string, string]
 }
 
 export default function MultiAgentLab() {
+  useVisit('06-multi-agent-systems/03-supervisor-team', '/labs/multi')
   const t = useT(multiLabDict)
   const c = useT(common)
   const app = useApp()

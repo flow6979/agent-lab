@@ -12,6 +12,7 @@ import { useLabRun } from '../../lib/useLabRun'
 import type { LabEvent } from '../../lib/worker'
 import { useApp } from '../../state/app'
 import '../../styles/pages/rag-lab.css'
+import { useVisit } from '../../lib/useVisit'
 
 type Source = 'sample' | 'upload' | 'text'
 type Chunk = { id: string; page: number; score: number; text: string }
@@ -22,6 +23,7 @@ const STAGES = ['load', 'chunk', 'embed', 'store', 'retrieve', 'generate'] as co
 const MAX_BYTES = 5 * 1024 * 1024
 
 export default function RagLab() {
+  useVisit('04-rag/02-pdf-chat', '/labs/rag')
   const t = useT(ragLabDict)
   const c = useT(common)
   const app = useApp()
