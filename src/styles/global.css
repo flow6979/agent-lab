@@ -168,3 +168,9 @@ textarea.input { height: auto; padding: 12px 14px; resize: vertical; line-height
 .lab-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr) 420px; gap: 16px; align-items: stretch; }
 @media (max-width: 1200px) { .lab-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .lab-grid > :first-child { grid-column: 1 / -1; } }
 @media (max-width: 760px) { .lab-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* phone: header 2 lines (logo + controls, then nav) taaki sab dikhe */
+@media (max-width: 760px) {
+  .site-header { height: auto; flex-wrap: wrap; padding: 8px 12px; row-gap: 8px; overflow-x: visible; }
+  .site-nav { order: 10; width: 100%; overflow-x: auto; }
+}
