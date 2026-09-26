@@ -89,8 +89,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const specs = chain.map((id) => providerById(id)?.spec).filter(Boolean) as string[]
     const primary = providerById(provider)
     const embedProvider = chain.map((id) => providerById(id)).find((p) => p?.embed && keys[p.id])
+    // Saari saved keys bhejo: multi-agent mein koi role (e.g. Writer) chain se bahar ke provider pe ho sakta hai.
+    // get_llm() har spec ke provider ki key hi uthata hai, isliye extra keys kahin aur nahi jaati.
     const k: Record<string, string> = {}
-    for (const id of chain) if (keys[id]) k[id] = keys[id]!
+    for (const [id, v] of Object.entries(keys)) if (v && id !== 'tavily') k[id] = v
     return { offline: false, lang, llm: { spec: specs.join(','), keys: k, embed: embedProvider?.embed ?? (primary?.embed && keys[primary.id] ? primary.embed : 'local') } }
   }, [offline, provider, fallback, keys, lang])
 
