@@ -162,7 +162,7 @@ export default function Settings() {
             <p className="muted" style={{ margin: 0, fontSize: 14 }}>{t.keysSub}</p>
             {app.presenterMask && <span style={{ fontSize: 12, color: 'var(--amber)' }}>{t.maskedByPresenter}</span>}
             {KEYED.map((p) => (
-              <KeyRow key={p.id} id={p.id} label={`${p.name} API key`} placeholder={p.keyPrefix ? `${p.keyPrefix}...` : ''} keyUrl={p.keyUrl} />
+              <KeyRow key={p.id} id={p.id} label={`${p.name} API key`} placeholder={`${p.name} API key`} keyUrl={p.keyUrl} />
             ))}
           </section>
         </div>

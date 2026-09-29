@@ -27,3 +27,13 @@ export function maskKey(key: string): string {
   if (key.length <= 8) return '****'
   return `${key.slice(0, 4)}****${key.slice(-4)}`
 }
+
+/** Key saaf taur pe kisi DUSRE provider ki lagti hai? (e.g. Gemini chuna, key `gsk_` = Groq wali).
+ *  Apne provider ka format check nahi karte: providers naye formats laate rehte hain, isliye galat alarm hota. */
+export function keyLooksLikeOther(provider: ProviderId, key: string): Provider | null {
+  const k = key.trim()
+  if (k.length < 8) return null
+  const byLongest = PROVIDERS.filter((p) => p.keyPrefix).sort((a, b) => b.keyPrefix!.length - a.keyPrefix!.length)
+  const match = byLongest.find((p) => k.startsWith(p.keyPrefix!))
+  return match && match.id !== provider ? match : null
+}

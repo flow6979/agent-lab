@@ -7,7 +7,7 @@ import { WorkerStatus } from '../components/WorkerStatus'
 import { Tip, useGuide } from '../guide/guide'
 import { useT, type Lang } from '../i18n'
 import { setupDict } from '../i18n/pages/setup'
-import { PROVIDERS, providerById, type ProviderId } from '../lib/providers'
+import { keyLooksLikeOther, PROVIDERS, providerById, type ProviderId } from '../lib/providers'
 import { bridge, type LabError as LabErr } from '../lib/worker'
 import { useApp } from '../state/app'
 
@@ -81,7 +81,7 @@ export default function Setup() {
     navigate('/map')
   }
 
-  const warnKey = prov?.keyPrefix && keyDraft.length > 6 && !keyDraft.startsWith(prov.keyPrefix)
+  const otherProv = prov ? keyLooksLikeOther(prov.id, keyDraft) : null
   const cards = PROVIDERS.filter((p) => p.primary || showMore)
 
   return (
@@ -151,12 +151,12 @@ export default function Setup() {
                 {prov ? `${prov.name} API key` : t.pickFirst}
               </label>
               <div className="row" style={{ gap: 10 }}>
-                <input id="api-key" className="input mono" type="password" autoComplete="off" spellCheck={false} disabled={!prov} value={keyDraft} onChange={(e) => setKeyDraft(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveKey()} placeholder={prov?.keyPrefix ? `${prov.keyPrefix}...` : ''} />
+                <input id="api-key" className="input mono" type="password" autoComplete="off" spellCheck={false} disabled={!prov} value={keyDraft} onChange={(e) => setKeyDraft(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && saveKey()} placeholder={prov ? `${prov.name} API key` : ''} />
                 <button type="button" className={`btn btn-primary ${g.pulse('key')}`} disabled={!prov || keyDraft.trim().length < 8} onClick={saveKey}>
                   {prov && app.keys[prov.id] === keyDraft.trim() && keyDraft ? t.saved : t.saveKey}
                 </button>
               </div>
-              {warnKey && <span style={{ fontSize: 12, color: 'var(--amber)' }}>{t.keyWarn}</span>}
+              {otherProv && <span style={{ fontSize: 12, color: 'var(--amber)' }}>{t.keyWarn(otherProv.name)}</span>}
               {prov?.keyUrl && (
                 <a href={prov.keyUrl} target="_blank" rel="noopener noreferrer" className="row" style={{ gap: 6, fontSize: 13 }}>
                   {t.getKey} <Icon name="external" size={14} />
