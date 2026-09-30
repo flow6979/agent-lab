@@ -13,7 +13,7 @@ export type Provider = {
 }
 
 export const PROVIDERS: Provider[] = [
-  { id: 'gemini', name: 'Gemini', model: 'gemini-2.5-flash', spec: 'gemini:gemini-2.5-flash', embed: 'gemini:text-embedding-004', keyUrl: 'https://aistudio.google.com/apikey', keyPrefix: 'AIza', primary: true },
+  { id: 'gemini', name: 'Gemini', model: 'gemini-3.8-flash', spec: 'gemini:gemini-3.8-flash', embed: 'gemini:text-embedding-004', keyUrl: 'https://aistudio.google.com/apikey', keyPrefix: 'AIza', primary: true },
   { id: 'groq', name: 'Groq', model: 'llama-3.3-70b-versatile', spec: 'groq:llama-3.3-70b-versatile', keyUrl: 'https://console.groq.com/keys', keyPrefix: 'gsk_', primary: true },
   { id: 'offline', name: 'Offline demo', model: 'scripted', spec: 'offline', primary: true },
   { id: 'openai', name: 'OpenAI', model: 'gpt-4o-mini', spec: 'openai:gpt-4o-mini', embed: 'openai:text-embedding-3-small', keyUrl: 'https://platform.openai.com/api-keys', keyPrefix: 'sk-', primary: false },

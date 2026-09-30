@@ -20,6 +20,10 @@ export type AppState = {
   fallback: ProviderId[] // extra providers after primary, e.g. ['gemini']
   setFallback: (f: ProviderId[]) => void
   roleModels: Record<string, string> // multi-agent: role -> spec
+  models: Record<string, string> // provider -> model override (e.g. gemini -> gemini-3.8-flash)
+  setModel: (provider: string, model: string) => void
+  modelFor: (provider: string | null | undefined) => string
+  specFor: (provider: string | null | undefined) => string
   setRoleModel: (role: string, spec: string) => void
   connection: Connection
   setConnection: (c: Connection) => void
@@ -38,6 +42,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [keys, setKeys] = useState<Partial<Record<string, string>>>(() => session.get('keys', {}))
   const [fallback, setFallbackS] = useState<ProviderId[]>(() => local.get<ProviderId[]>('fallback', []))
   const [roleModels, setRoleModels] = useState<Record<string, string>>(() => local.get('roleModels', {}))
+  const [models, setModels] = useState<Record<string, string>>(() => local.get('models', {}))
   const [connection, setConnection] = useState<Connection>(() => (session.get('connected', false) ? 'ok' : 'none'))
   const [presenterMask, setPresenterMask] = useState(true)
 
@@ -77,6 +82,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return next
     })
   }, [])
+  const setModel = useCallback((prov: string, model: string) => {
+    setModels((prev) => {
+      const next = { ...prev, [prov]: model.trim() }
+      if (!model.trim()) delete next[prov]
+      local.set('models', next)
+      return next
+    })
+    setConnection('none')
+    session.set('connected', false)
+  }, [])
+  // Provider kabhi bhi purana model band kar sakta hai; user ka override default se upar
+  const modelFor = useCallback((id: string | null | undefined) => (id && models[id]) || providerById(id)?.model || '', [models])
+  const specFor = useCallback((id: string | null | undefined) => {
+    const p = providerById(id)
+    if (!p || p.id === 'offline') return ''
+    return `${p.id}:${modelFor(p.id)}`
+  }, [modelFor])
   const setConn = useCallback((c: Connection) => {
     setConnection(c)
     session.set('connected', c === 'ok')
@@ -86,7 +108,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const llmRequest = useCallback((): Pick<LabRequest, 'llm' | 'offline' | 'lang'> => {
     if (offline) return { offline: true, lang }
     const chain = [provider!, ...fallback.filter((f) => f !== provider && f !== 'offline')]
-    const specs = chain.map((id) => providerById(id)?.spec).filter(Boolean) as string[]
+    const specs = chain.map((id) => specFor(id)).filter(Boolean)
     const primary = providerById(provider)
     const embedProvider = chain.map((id) => providerById(id)).find((p) => p?.embed && keys[p.id])
     // Saari saved keys bhejo: multi-agent mein koi role (e.g. Writer) chain se bahar ke provider pe ho sakta hai.
@@ -94,11 +116,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const k: Record<string, string> = {}
     for (const [id, v] of Object.entries(keys)) if (v && id !== 'tavily') k[id] = v
     return { offline: false, lang, llm: { spec: specs.join(','), keys: k, embed: embedProvider?.embed ?? (primary?.embed && keys[primary.id] ? primary.embed : 'local') } }
-  }, [offline, provider, fallback, keys, lang])
+  }, [offline, provider, fallback, keys, lang, specFor])
 
   const value = useMemo<AppState>(
-    () => ({ lang, setLang, provider, setProvider, keys, setKey, clearKeys, fallback, setFallback, roleModels, setRoleModel, connection, setConnection: setConn, offline, llmRequest, presenterMask, setPresenterMask }),
-    [lang, setLang, provider, setProvider, keys, setKey, clearKeys, fallback, setFallback, roleModels, setRoleModel, connection, setConn, offline, llmRequest, presenterMask],
+    () => ({ lang, setLang, provider, setProvider, keys, setKey, clearKeys, fallback, setFallback, roleModels, setRoleModel, models, setModel, modelFor, specFor, connection, setConnection: setConn, offline, llmRequest, presenterMask, setPresenterMask }),
+    [lang, setLang, provider, setProvider, keys, setKey, clearKeys, fallback, setFallback, roleModels, setRoleModel, models, setModel, modelFor, specFor, connection, setConn, offline, llmRequest, presenterMask],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
