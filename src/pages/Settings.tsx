@@ -44,7 +44,7 @@ export default function Settings() {
     app.setFallback(next)
     setAddChoice('')
     const p = providerById(primary)
-    const specStr = [p && p.id !== 'offline' ? p.spec : null, ...next.map((n) => providerById(n)?.spec)].filter(Boolean).join(',')
+    const specStr = [p && p.id !== 'offline' ? app.specFor(p.id) : null, ...next.map((n) => app.specFor(n))].filter(Boolean).join(',')
     g.done('fallback', t.explain.fallback(specStr))
   }
 
@@ -94,18 +94,25 @@ export default function Settings() {
               {PROVIDERS.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
-                  {p.id !== 'offline' ? ` (${p.model})` : ''}
+                  {p.id !== 'offline' ? ` (${app.modelFor(p.id)})` : ''}
                 </option>
               ))}
             </select>
 
+            {prim && prim.id !== 'offline' && (
+              <>
+                <label htmlFor="model" className="label">{t.modelLabel}</label>
+                <input id="model" className="input mono" spellCheck={false} value={app.modelFor(prim.id)} onChange={(e) => app.setModel(prim.id, e.target.value)} />
+                <span className="muted" style={{ fontSize: 12 }}>{t.modelHelp(prim.model)}</span>
+              </>
+            )}
             <h3 style={{ fontSize: 16, marginTop: 6 }}>{t.chainTitle}</h3>
             <ol className="chain-list">
-              {prim && prim.id !== 'offline' && <ChainRow name={prim.name} spec={prim.spec} badge={t.primaryBadge} primary hasKey={!!app.keys[prim.id]} noKey={t.noKey} />}
+              {prim && prim.id !== 'offline' && <ChainRow name={prim.name} spec={app.specFor(prim.id)} badge={t.primaryBadge} primary hasKey={!!app.keys[prim.id]} noKey={t.noKey} />}
               {chain.map((id, i) => {
                 const p = providerById(id)!
                 return (
-                  <ChainRow key={id} name={p.name} spec={p.spec} badge={`${t.fallbackBadge} ${i + 1}`} hasKey={!!app.keys[id]} noKey={t.noKey}>
+                  <ChainRow key={id} name={p.name} spec={app.specFor(id)} badge={`${t.fallbackBadge} ${i + 1}`} hasKey={!!app.keys[id]} noKey={t.noKey}>
                     <button type="button" className="btn btn-sm icon-btn" aria-label={`${t.up}: ${p.name}`} disabled={i === 0} onClick={() => move(i, -1)}>
                       <Icon name="up" size={16} />
                     </button>
@@ -199,7 +206,7 @@ export default function Settings() {
                 >
                   <option value="">{t.usePrimary}</option>
                   {KEYED.map((p) => (
-                    <option key={p.id} value={p.spec}>{p.spec}</option>
+                    <option key={p.id} value={app.specFor(p.id)}>{app.specFor(p.id)}</option>
                   ))}
                 </select>
               </div>

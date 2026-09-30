@@ -39,7 +39,7 @@ export default function Setup() {
     setErr(null)
     setTestInfo('')
     if (g.current === 'lang') g.done('lang')
-    g.done('pick', id === 'offline' ? t.explain.pickOffline : t.explain.pick(p.name, p.spec))
+    g.done('pick', id === 'offline' ? t.explain.pickOffline : t.explain.pick(p.name, app.specFor(p.id)))
     if (id === 'offline') g.done('key')
   }
 
@@ -125,7 +125,7 @@ export default function Setup() {
                   <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700 }}>{p.name}</span>
                   <span className={`badge ${sel ? '' : 'badge-gray'}`} style={sel ? { background: 'var(--teal)', color: '#fff' } : undefined}>{sel ? t.chosen : t.choose}</span>
                 </div>
-                <span className="mono" style={{ fontSize: 13, color: 'var(--teal)' }}>{p.id === 'offline' ? 'ScriptedLLM' : p.spec}</span>
+                <span className="mono" style={{ fontSize: 13, color: 'var(--teal)' }}>{p.id === 'offline' ? 'ScriptedLLM' : app.specFor(p.id)}</span>
                 <span style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.45 }}>{t.desc[p.id]}</span>
               </button>
             )
@@ -157,6 +157,13 @@ export default function Setup() {
                 </button>
               </div>
               {otherProv && <span style={{ fontSize: 12, color: 'var(--amber)' }}>{t.keyWarn(otherProv.name)}</span>}
+              {prov && (
+                <div className="col" style={{ gap: 4 }}>
+                  <label htmlFor="model-name" className="label">{t.modelLabel}</label>
+                  <input id="model-name" className="input mono" spellCheck={false} value={app.modelFor(prov.id)} onChange={(e) => app.setModel(prov.id, e.target.value)} />
+                  <span style={{ fontSize: 12, color: 'var(--muted)' }}>{t.modelHelp}</span>
+                </div>
+              )}
               {prov?.keyUrl && (
                 <a href={prov.keyUrl} target="_blank" rel="noopener noreferrer" className="row" style={{ gap: 6, fontSize: 13 }}>
                   {t.getKey} <Icon name="external" size={14} />

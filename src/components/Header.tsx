@@ -39,7 +39,7 @@ export function Header() {
       <Link to="/settings" className="provider-chip" title={t.settings}>
         <span style={{ width: 8, height: 8, borderRadius: 99, background: dot }} />
         <span style={{ fontWeight: 600 }}>{prov ? prov.name : t.notConnected}</span>
-        {prov && prov.id !== 'offline' && <span className="mono hide-sm" style={{ color: 'var(--muted)' }}>{prov.model}</span>}
+        {prov && prov.id !== 'offline' && <span className="mono hide-sm" style={{ color: 'var(--muted)' }}>{app.modelFor(prov.id)}</span>}
       </Link>
       <Seg label="Language" value={app.lang} onChange={app.setLang} options={[{ value: 'hi', label: 'Hinglish' }, { value: 'en', label: 'English' }]} />
       {activePage && (
