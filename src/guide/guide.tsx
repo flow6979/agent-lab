@@ -7,7 +7,8 @@
 //
 // done(id, explain): agar abhi yahi step chal raha tha to agla step, aur "Kya hua?" card khulta hai.
 // Card khula ho tab koi tip nahi dikhta (ek waqt pe ek hi cheez).
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useLocation } from 'react-router-dom'
 import { local } from '../lib/storage'
 
 export type Explain = { title: string; flow?: string[]; lines: string[]; file?: string; link?: { href: string; label: string } }
@@ -86,15 +87,41 @@ export function Tip({ show, children, align = 'start' }: { show: boolean; childr
 
 export function ExplainCard({ labels }: { labels: { whatHappened: string; gotIt: string } }) {
   const { explain, showExplain } = useGuideCtx()
+  const location = useLocation()
+  const ref = useRef<HTMLElement>(null)
+  const firstPath = useRef(location.pathname)
+  const openedAt = useRef(0)
+  useEffect(() => {
+    if (explain) openedAt.current = Date.now()
+  }, [explain])
+
+  // Page / tab badla (route change) = card band, kyunki user ab kuch aur dekh raha hai.
+  // Exception: jis click ne card khola usi ne navigate bhi kiya (e.g. "Lab mein chalo" -> Map ka card),
+  // tab card naye page ke baare mein hai, use rehne do.
+  useEffect(() => {
+    if (location.pathname !== firstPath.current && Date.now() - openedAt.current > 600) showExplain(null)
+    firstPath.current = location.pathname
+  }, [location.pathname, showExplain])
+
+  // Escape ya card ke bahar kahin bhi click = card band.
   useEffect(() => {
     if (!explain) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && showExplain(null)
+    const onDown = (e: PointerEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) showExplain(null)
+    }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    // agle tick pe lagao, taaki jis click ne card khola wahi use turant band na kar de
+    const id = window.setTimeout(() => document.addEventListener('pointerdown', onDown), 0)
+    return () => {
+      window.clearTimeout(id)
+      window.removeEventListener('keydown', onKey)
+      document.removeEventListener('pointerdown', onDown)
+    }
   }, [explain, showExplain])
   if (!explain) return null
   return (
-    <aside className="al-in explain-card" aria-live="polite">
+    <aside ref={ref} className="al-in explain-card" aria-live="polite">
       <div className="row" style={{ gap: 10, alignItems: 'flex-start' }}>
         <span style={{ padding: '3px 10px', borderRadius: 999, background: 'var(--explain)', color: 'var(--ink)', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{labels.whatHappened}</span>
         <span style={{ fontFamily: 'var(--font-display)', fontSize: 19, fontWeight: 700, lineHeight: 1.25 }}>{explain.title}</span>
