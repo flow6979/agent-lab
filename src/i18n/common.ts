@@ -20,6 +20,8 @@ export const common = {
     openDocs: 'Docs padho',
     openGithub: 'GitHub pe dekho',
     offlineNote: 'Offline demo: jawab pehle se likha (scripted) hai, isliye tumhara sawaal badalne se jawab nahi badlega.',
+    useModel: (m: string) => `Provider ka suggest kiya model use karo: ${m}`,
+    modelSwitched: (m: string) => `Model ab ${m} hai. Dobara Test / Run dabao.`,
     errors: {
       auth: { title: 'Key galat hai (401)', fix: 'Settings mein sahi key daalo' },
       rate_limit: { title: 'Rate limit (429)', fix: 'Thodi der ruko ya fallback provider jodo' },
@@ -51,6 +53,8 @@ export const common = {
     openDocs: 'Read the docs',
     openGithub: 'View on GitHub',
     offlineNote: 'Offline demo: the answers are pre-written (scripted), so changing your question will not change the answer.',
+    useModel: (m: string) => `Use the model the provider suggests: ${m}`,
+    modelSwitched: (m: string) => `The model is now ${m}. Click Test / Run again.`,
     errors: {
       auth: { title: 'Invalid key (401)', fix: 'Add a valid key in Settings' },
       rate_limit: { title: 'Rate limited (429)', fix: 'Wait a bit or add a fallback provider' },
