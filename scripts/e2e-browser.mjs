@@ -62,6 +62,28 @@ try {
   console.log(`ok   UI offline ReAct run, trace items=${traceCount}`)
   if (traceCount < 5) fail('expected at least 5 trace items')
 
+  // ---- 1b. "Kya hua?" card closes on outside click and on page/tab change -------------------
+  const card = page.locator('.explain-card')
+  await card.waitFor({ timeout: 10000 }) // the ReAct run above opened it
+  await page.locator('main h1').first().click()
+  await card.waitFor({ state: 'detached', timeout: 3000 })
+  console.log('ok   explain card closes on outside click')
+  await page.getByRole('button', { name: /^(Run again|Phir se chalao)$/ }).click()
+  await card.waitFor({ timeout: 60000 })
+  await page.getByRole('button', { name: /^(Code)$/ }).click() // tab change = route change
+  await card.waitFor({ state: 'detached', timeout: 3000 })
+  console.log('ok   explain card closes on tab change')
+  // a click that opens a card AND navigates keeps the card (it describes the new page)
+  await page.goto(`${base}#/map`)
+  await page.evaluate(() => localStorage.removeItem('agentlab:guide'))
+  await page.reload()
+  const reactRow = page.locator('button.map-row', { hasText: 'ReAct' }).first()
+  await reactRow.click()
+  await page.waitForURL(/#\/lab\/react/)
+  await card.waitFor({ timeout: 3000 })
+  console.log('ok   explain card opened by a navigating click stays on the new page')
+  await page.keyboard.press('Escape')
+
   // ---- 2. real network path from the worker ----------------------------------------------
   const out = await page.evaluate(async (workerUrl) => {
     const w = new Worker(workerUrl, { type: 'module' })
