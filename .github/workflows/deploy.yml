@@ -1,17 +1,12 @@
-# Build + deploy to GitHub Pages.
-# Har push pe, handbook update hone pe (repository_dispatch), roz ek baar, ya haath se (workflow_dispatch).
-# Steps: handbook repo checkout -> handbook bundle (sync) -> Pyodide smoke test (saare labs offline)
-#        -> vite build -> Pages pe deploy.
-name: Deploy to GitHub Pages
+# Agent Lab ab HLD Prep ka "Agentic AI" section hai:
+#   https://flow6979.github.io/system-design-prep/#/agents
+# Is repo ki Pages site sirf redirect page publish karti hai, taaki purane links (deep links bhi) kaam karein.
+name: Deploy redirect to GitHub Pages
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
-  repository_dispatch:
-    types: [handbook-updated]
-  schedule:
-    - cron: '30 3 * * *'
 
 permissions:
   contents: read
@@ -27,37 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Checkout handbook
-        uses: actions/checkout@v4
-        with:
-          repository: flow6979/agentic-ai-handbook
-          path: handbook
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
-
-      - name: Bundle handbook (code + docs)
-        run: node scripts/sync-handbook.mjs
-        env:
-          HANDBOOK_DIR: handbook
-
-      - name: Smoke test every lab offline inside Pyodide
-        run: node scripts/smoke-pyodide.mjs
-
-      - name: Run every handbook project's main.py offline inside Pyodide
-        run: node scripts/smoke-projects.mjs
-
-      - name: Build site
-        run: npm run build
-
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: redirect
 
   deploy:
     needs: build

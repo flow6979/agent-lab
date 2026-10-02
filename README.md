@@ -1,5 +1,7 @@
 **Language:** Hinglish · [English](README.en.md)
 
+> **Ye site ab move ho gayi hai:** Agent Lab ab [HLD Prep](https://flow6979.github.io/system-design-prep/#/agents) ka **Agentic AI** section hai. Purana URL apne aap wahan redirect hota hai. Code ab [system-design-prep](https://github.com/flow6979/system-design-prep) repo ke `web/src/agents/` me maintain hota hai.
+
 # Agent Lab
 
 **Live:** https://flow6979.github.io/agent-lab/
