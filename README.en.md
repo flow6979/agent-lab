@@ -1,6 +1,6 @@
 **Language:** [Hinglish](README.md) · English
 
-> **This site has moved:** Agent Lab is now the **Agentic AI** section of [HLD Prep](https://flow6979.github.io/system-design-prep/#/agents). The old URL redirects there automatically. The code is now maintained in `web/src/agents/` of the [system-design-prep](https://github.com/flow6979/system-design-prep) repo.
+> **This site has moved:** Agent Lab is now the **Agentic AI** section of [Viewinter](https://flow6979.github.io/viewinter/#/agents). The old URL redirects there automatically. The code is now maintained in `web/src/agents/` of the [viewinter](https://github.com/flow6979/viewinter) repo.
 
 # Agent Lab
 
